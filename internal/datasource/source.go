@@ -247,10 +247,19 @@ func discoverLocalJSONLSources(beadsDir string, opts DiscoveryOptions) ([]DataSo
 			continue
 		}
 
+		// Assign priority based on file name
+		// Canonical beads files get highest priority
+		priority := PriorityJSONLLocal
+		if name == "beads.jsonl" || name == "issues.jsonl" {
+			priority = 90 // Higher than regular JSONL files
+		} else if name == "sync_base.jsonl" {
+			priority = 70 // Lower than canonical, higher than others
+		}
+
 		sources = append(sources, DataSource{
 			Type:     SourceTypeJSONLLocal,
 			Path:     path,
-			Priority: PriorityJSONLLocal,
+			Priority: priority,
 			ModTime:  info.ModTime(),
 			Size:     info.Size(),
 		})

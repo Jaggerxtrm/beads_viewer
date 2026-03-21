@@ -61,7 +61,25 @@ func loadSmart(beadsDir, repoPath string) ([]model.Issue, error) {
 		return nil, fmt.Errorf("no valid sources discovered")
 	}
 
-	best, err := SelectBestSource(sources)
+	// Filter out sources with 0 issues - they're not useful for triage
+	var nonEmptySources []DataSource
+	for _, s := range sources {
+		if s.IssueCount > 0 {
+			nonEmptySources = append(nonEmptySources, s)
+		}
+	}
+	
+	// If all sources are empty, fall back to JSONL loader
+	if len(nonEmptySources) == 0 {
+		return nil, fmt.Errorf("no sources with issues found")
+	}
+
+	// Select best source with priority over freshness
+	// This ensures canonical beads.jsonl/issues.jsonl are preferred over sync_base.jsonl
+	best, err := SelectBestSourceWithOptions(nonEmptySources, SelectionOptions{
+		PreferFreshest:      false, // Prefer priority over freshness
+		MinimumValidSources: 1,
+	})
 	if err != nil {
 		return nil, err
 	}
