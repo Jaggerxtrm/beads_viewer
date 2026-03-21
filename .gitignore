@@ -58,3 +58,7 @@ target-*/
 
 # Crush tool logs (ephemeral)
 .crush/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
