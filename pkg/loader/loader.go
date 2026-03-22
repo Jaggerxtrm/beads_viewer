@@ -31,8 +31,8 @@ var PreferredJSONLNames = []string{"beads.jsonl", "issues.jsonl", "beads.base.js
 // GetBeadsDir returns the beads directory path, with the following priority:
 //  1. BEADS_DB env var (can point to a file or directory; if file, returns parent dir)
 //  2. BEADS_DIR env var (used directly as the .beads directory)
-//  3. .beads in the given repoPath (or cwd if empty)
-//  4. .beads in the main git repository root (for worktrees)
+//  3. .beads in the given repoPath (or cwd if empty) - if it has actual data
+//  4. .beads in the main git repository root (for worktrees) - if worktree's is empty
 func GetBeadsDir(repoPath string) (string, error) {
 	// Check BEADS_DB environment variable first (highest priority after --db flag)
 	if envDB := os.Getenv(BeadsDBEnvVar); envDB != "" {
@@ -55,22 +55,90 @@ func GetBeadsDir(repoPath string) (string, error) {
 
 	// Check for .beads in the given path first
 	beadsDir := filepath.Join(repoPath, ".beads")
+	beadsDirExists := false
 	if _, err := os.Stat(beadsDir); err == nil {
-		return beadsDir, nil
+		beadsDirExists = true
 	}
 
-	// If not found, check if we're in a git worktree and look in the main repo
+	// If we're in a worktree, check if the main repo has a more complete .beads
 	mainRepoRoot, err := getMainRepoRoot(repoPath)
 	if err == nil && mainRepoRoot != "" && mainRepoRoot != repoPath {
 		mainBeadsDir := filepath.Join(mainRepoRoot, ".beads")
 		if _, err := os.Stat(mainBeadsDir); err == nil {
-			return mainBeadsDir, nil
+			// Prefer main repo's .beads if:
+			// 1. Worktree has no .beads, OR
+			// 2. Worktree's .beads has no data (empty or just dolt runtime files)
+			if !beadsDirExists {
+				return mainBeadsDir, nil
+			}
+			
+			// Check if worktree's .beads has actual data
+			worktreeHasData := hasBeadsData(beadsDir)
+			mainHasData := hasBeadsData(mainBeadsDir)
+			
+			// If worktree has no data but main does, use main
+			if !worktreeHasData && mainHasData {
+				return mainBeadsDir, nil
+			}
 		}
 	}
 
 	// Return the original path even if .beads doesn't exist
 	// (caller will handle the error)
 	return beadsDir, nil
+}
+
+// hasBeadsData checks if a .beads directory has actual beads data
+// (either JSONL files or a working dolt database with issues)
+func hasBeadsData(beadsDir string) bool {
+	// Check for JSONL files
+	entries, err := os.ReadDir(beadsDir)
+	if err != nil {
+		return false
+	}
+	
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		// Check for JSONL files with content
+		if strings.HasSuffix(name, ".jsonl") && !strings.Contains(name, ".backup") {
+			info, err := e.Info()
+			if err == nil && info.Size() > 0 {
+				return true
+			}
+		}
+	}
+	
+	// Check for working dolt database
+	doltDir := filepath.Join(beadsDir, "dolt")
+	if info, err := os.Stat(doltDir); err == nil && info.IsDir() {
+		// Verify bd can access this dolt database
+		if bdPath, err := exec.LookPath("bd"); err == nil {
+			cmd := exec.Command(bdPath, "list", "--limit", "0")
+			cmd.Env = append(os.Environ(), "BEADS_DIR="+beadsDir, "BD_QUIET=1")
+			if output, err := cmd.Output(); err == nil {
+				// Check if there are any issues
+				outputStr := string(output)
+				if strings.Contains(outputStr, "Total:") {
+					parts := strings.Split(outputStr, "Total:")
+					if len(parts) > 1 {
+						totalPart := strings.TrimSpace(parts[1])
+						fields := strings.Fields(totalPart)
+						if len(fields) > 0 {
+							var count int
+							if _, err := fmt.Sscanf(fields[0], "%d", &count); err == nil && count > 0 {
+								return true
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return false
 }
 
 // resolveBeadsDB interprets a BEADS_DB value which can be either:
