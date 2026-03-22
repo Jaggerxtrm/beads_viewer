@@ -1,17 +1,19 @@
 package datasource
 
 import (
+	"bytes"
 	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/Dicklesworthstone/beads_viewer/pkg/loader"
 	"github.com/Dicklesworthstone/beads_viewer/pkg/model"
 )
 
 // LoadIssues performs smart multi-source detection and loading.
-// It discovers all available sources (SQLite, JSONL), validates them, selects
-// the freshest valid source, and loads issues from it. SQLite is preferred over
-// JSONL when both exist at comparable freshness, since SQLite reflects the most
-// recent state (including status changes from br operations).
+// It discovers all available sources (Dolt, SQLite, JSONL), validates them, selects
+// the best valid source, and loads issues from it. Dolt is preferred over SQLite
+// which is preferred over JSONL when both exist at comparable freshness.
 //
 // Falls back to legacy JSONL-only loading via loader.LoadIssues if smart
 // detection finds no valid sources.
@@ -75,7 +77,7 @@ func loadSmart(beadsDir, repoPath string) ([]model.Issue, error) {
 	}
 
 	// Select best source with priority over freshness
-	// This ensures canonical beads.jsonl/issues.jsonl are preferred over sync_base.jsonl
+	// This ensures dolt is preferred, then canonical beads.jsonl/issues.jsonl
 	best, err := SelectBestSourceWithOptions(nonEmptySources, SelectionOptions{
 		PreferFreshest:      false, // Prefer priority over freshness
 		MinimumValidSources: 1,
@@ -91,6 +93,8 @@ func loadSmart(beadsDir, repoPath string) ([]model.Issue, error) {
 // appropriate reader based on source type.
 func LoadFromSource(source DataSource) ([]model.Issue, error) {
 	switch source.Type {
+	case SourceTypeDolt:
+		return loadFromDolt(source)
 	case SourceTypeSQLite:
 		reader, err := NewSQLiteReader(source)
 		if err != nil {
@@ -105,4 +109,28 @@ func LoadFromSource(source DataSource) ([]model.Issue, error) {
 	default:
 		return nil, fmt.Errorf("unknown source type: %s", source.Type)
 	}
+}
+
+// loadFromDolt loads issues from a dolt-backed beads database by running bd export
+func loadFromDolt(source DataSource) ([]model.Issue, error) {
+	// Find bd command
+	bdPath, err := exec.LookPath("bd")
+	if err != nil {
+		return nil, fmt.Errorf("bd command not found: %w", err)
+	}
+
+	// Run bd export to get JSONL output
+	cmd := exec.Command(bdPath, "export")
+	cmd.Env = append(os.Environ(), fmt.Sprintf("BEADS_DIR=%s", source.BeadsDir))
+	
+	output, err := cmd.Output()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("bd export failed: %w (stderr: %s)", err, string(exitErr.Stderr))
+		}
+		return nil, fmt.Errorf("bd export failed: %w", err)
+	}
+
+	// Parse the JSONL output using the existing loader
+	return loader.ParseIssues(bytes.NewReader(output))
 }

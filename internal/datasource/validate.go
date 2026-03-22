@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	json "github.com/goccy/go-json"
@@ -59,6 +60,8 @@ func ValidateSourceWithOptions(source *DataSource, opts ValidationOptions) error
 
 	var err error
 	switch source.Type {
+	case SourceTypeDolt:
+		err = validateDolt(source, opts)
 	case SourceTypeSQLite:
 		err = validateSQLite(source, opts)
 	case SourceTypeJSONLLocal, SourceTypeJSONLWorktree:
@@ -75,6 +78,48 @@ func ValidateSourceWithOptions(source *DataSource, opts ValidationOptions) error
 
 	source.Valid = true
 	source.ValidationError = ""
+	return nil
+}
+
+// validateDolt validates a dolt-backed beads database by running bd export
+func validateDolt(source *DataSource, opts ValidationOptions) error {
+	// Check that bd command is available
+	bdPath, err := exec.LookPath("bd")
+	if err != nil {
+		return fmt.Errorf("bd command not found: %w", err)
+	}
+
+	// Run bd list --json to check connectivity and count issues
+	// We use bd list instead of bd export for validation because it's faster
+	cmd := exec.Command(bdPath, "list", "--status=open", "--limit=0")
+	cmd.Env = append(os.Environ(), fmt.Sprintf("BEADS_DIR=%s", source.BeadsDir))
+	
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("bd list failed: %w (output: %s)", err, string(output))
+	}
+
+	// Parse the output to get issue count
+	// bd list output format: "Total: N issues (X open, Y in_progress)"
+	outputStr := string(output)
+	if strings.Contains(outputStr, "Total:") {
+		// Extract the count from "Total: N issues"
+		parts := strings.Split(outputStr, "Total:")
+		if len(parts) > 1 {
+			totalPart := strings.TrimSpace(parts[1])
+			// Parse "N issues" format
+			countStr := strings.Fields(totalPart)[0]
+			var count int
+			if _, err := fmt.Sscanf(countStr, "%d", &count); err == nil {
+				source.IssueCount = count
+			}
+		}
+	}
+
+	if opts.Verbose {
+		opts.Logger(fmt.Sprintf("Dolt validation passed: %s (%d issues)", source.BeadsDir, source.IssueCount))
+	}
+
 	return nil
 }
 
@@ -284,12 +329,27 @@ func validateJSONL(source *DataSource, opts ValidationOptions) error {
 
 // IsSourceAccessible quickly checks if a source file is accessible
 func IsSourceAccessible(source *DataSource) bool {
+	if source.Type == SourceTypeDolt {
+		// For dolt, check if bd is available
+		_, err := exec.LookPath("bd")
+		return err == nil
+	}
 	_, err := os.Stat(source.Path)
 	return err == nil
 }
 
 // RefreshSourceInfo updates the ModTime and Size of a source from disk
 func RefreshSourceInfo(source *DataSource) error {
+	if source.Type == SourceTypeDolt {
+		// For dolt, check the dolt directory's mod time
+		doltDir := source.BeadsDir + "/dolt"
+		info, err := os.Stat(doltDir)
+		if err != nil {
+			return fmt.Errorf("cannot access dolt directory: %w", err)
+		}
+		source.ModTime = info.ModTime()
+		return nil
+	}
 	info, err := os.Stat(source.Path)
 	if err != nil {
 		return fmt.Errorf("cannot access file: %w", err)

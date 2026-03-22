@@ -1,6 +1,6 @@
 // Package datasource provides intelligent multi-source data detection and selection
 // for beads_viewer. It discovers, validates, and selects the freshest valid source
-// from SQLite databases, worktree JSONL files, and local JSONL files.
+// from Dolt databases, SQLite databases, JSONL files, and worktree JSONL files.
 package datasource
 
 import (
@@ -17,6 +17,8 @@ import (
 type SourceType string
 
 const (
+	// SourceTypeDolt is a dolt-backed beads database (canonical source)
+	SourceTypeDolt SourceType = "dolt"
 	// SourceTypeSQLite is a SQLite database (beads.db)
 	SourceTypeSQLite SourceType = "sqlite"
 	// SourceTypeJSONLWorktree is a JSONL file from a git worktree
@@ -27,6 +29,8 @@ const (
 
 // Priority values for source types (higher = more authoritative)
 const (
+	// PriorityDolt is highest - dolt is the canonical source for new beads
+	PriorityDolt          = 150
 	PrioritySQLite        = 100
 	PriorityJSONLWorktree = 80
 	PriorityJSONLLocal    = 50
@@ -36,7 +40,7 @@ const (
 type DataSource struct {
 	// Type identifies the source type
 	Type SourceType `json:"type"`
-	// Path is the absolute path to the source file
+	// Path is the absolute path to the source file (or "dolt" for dolt sources)
 	Path string `json:"path"`
 	// Priority determines preference when timestamps are equal (higher = preferred)
 	Priority int `json:"priority"`
@@ -48,8 +52,10 @@ type DataSource struct {
 	ValidationError string `json:"validation_error,omitempty"`
 	// IssueCount is the number of issues in the source (set during validation)
 	IssueCount int `json:"issue_count"`
-	// Size is the file size in bytes
+	// Size is the file size in bytes (0 for dolt sources)
 	Size int64 `json:"size"`
+	// BeadsDir is the .beads directory path for dolt sources
+	BeadsDir string `json:"beads_dir,omitempty"`
 }
 
 // String returns a human-readable description of the source
@@ -113,6 +119,13 @@ func DiscoverSources(opts DiscoveryOptions) ([]DataSource, error) {
 	}
 
 	var sources []DataSource
+
+	// Discover dolt database first (highest priority)
+	doltSources, err := discoverDoltSources(beadsDir, opts)
+	if err != nil && opts.Verbose {
+		opts.Logger(fmt.Sprintf("Dolt discovery warning: %v", err))
+	}
+	sources = append(sources, doltSources...)
 
 	// Discover SQLite database
 	sqliteSources, err := discoverSQLiteSources(beadsDir, opts)
@@ -186,6 +199,75 @@ func resolveBeadsDBPath(dbPath string) string {
 		return dbPath
 	}
 	return filepath.Dir(dbPath)
+}
+
+// discoverDoltSources finds dolt-backed beads databases
+func discoverDoltSources(beadsDir string, opts DiscoveryOptions) ([]DataSource, error) {
+	var sources []DataSource
+
+	// Check for .beads/dolt directory (dolt database)
+	doltDir := filepath.Join(beadsDir, "dolt")
+	info, err := os.Stat(doltDir)
+	if err != nil {
+		// No dolt directory
+		return nil, nil
+	}
+	if !info.IsDir() {
+		return nil, nil
+	}
+
+	// Check if bd command is available
+	bdPath, err := exec.LookPath("bd")
+	if err != nil {
+		if opts.Verbose {
+			opts.Logger(fmt.Sprintf("bd command not found, skipping dolt source: %v", err))
+		}
+		return nil, nil
+	}
+
+	// Verify that bd can actually access this beads directory
+	// This is important for worktrees that might have an empty dolt database
+	cmd := exec.Command(bdPath, "list", "--limit", "0")
+	cmd.Env = append(os.Environ(), "BEADS_DIR="+beadsDir, "BD_QUIET=1")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if opts.Verbose {
+			opts.Logger(fmt.Sprintf("bd list failed for %s, skipping dolt source: %v (output: %s)", beadsDir, err, string(output)))
+		}
+		return nil, nil
+	}
+
+	// Parse issue count from output
+	issueCount := 0
+	outputStr := string(output)
+	if strings.Contains(outputStr, "Total:") {
+		parts := strings.Split(outputStr, "Total:")
+		if len(parts) > 1 {
+			totalPart := strings.TrimSpace(parts[1])
+			fields := strings.Fields(totalPart)
+			if len(fields) > 0 {
+				fmt.Sscanf(fields[0], "%d", &issueCount)
+			}
+		}
+	}
+
+	// Use the dolt directory's mod time as a proxy for data freshness
+	sources = append(sources, DataSource{
+		Type:       SourceTypeDolt,
+		Path:       "dolt:" + beadsDir,
+		Priority:   PriorityDolt,
+		ModTime:    info.ModTime(),
+		Size:       0,
+		BeadsDir:   beadsDir,
+		IssueCount: issueCount,
+		Valid:      true, // Already validated by bd list
+	})
+
+	if opts.Verbose {
+		opts.Logger(fmt.Sprintf("Found dolt database: %s (mod=%s, bd=%s, issues=%d)", doltDir, info.ModTime().Format(time.RFC3339), bdPath, issueCount))
+	}
+
+	return sources, nil
 }
 
 // discoverSQLiteSources finds SQLite databases in the beads directory
