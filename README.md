@@ -8,6 +8,16 @@
 
 > **The elegant, keyboard-driven terminal interface for the [Beads](https://github.com/steveyegge/beads) issue tracker.**
 
+---
+
+### Credits
+
+This project is a fork and adaptation of the original [beads_viewer](https://github.com/Dicklesworthstone/beads_viewer) created by **[Jeffrey Emanuel](https://github.com/Dicklesworthstone)**. All credit for the original vision, architecture, and implementation goes to Jeffrey. This version adds dolt backend support and minor UI refinements.
+
+The [Beads](https://github.com/steveyegge/beads) issue tracking system was created by **[Steve Yegge](https://github.com/steveyegge)**.
+
+---
+
 <div align="center" style="margin: 1.2em 0;">
   <table>
     <tr>
@@ -63,6 +73,14 @@ Download the latest release for your platform (tar.gz assets):
 - [Windows](https://github.com/Dicklesworthstone/beads_viewer/releases/latest/download/bv_0.13.0_windows_amd64.tar.gz)
 
 > Note: Asset names include the release version. If a link 404s, open the latest release page and download the matching asset.
+
+### Quick Install (with dependencies)
+
+Installs Go, dolt, and bv in one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jaggerxtrm/beads_viewer/main/scripts/install-bv.sh | bash
+```
 
 ### Alternative: Install Script
 
