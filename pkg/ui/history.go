@@ -2228,7 +2228,7 @@ func (h *HistoryModel) renderFileTreeLine(idx int, node *FileTreeNode, width int
 		if node.Expanded {
 			icon = "▼ "
 		} else {
-			icon = "▶ "
+			icon = "► "
 		}
 	} else {
 		icon = "  "
@@ -2761,9 +2761,9 @@ func commitTypeIndicator(msg string) string {
 	if cc.IsConventional {
 		switch cc.Type {
 		case "feat":
-			return "✨" // sparkles for feature
+			return "+" // sparkles for feature
 		case "fix":
-			return "🐛" // bug for fix
+			return "!" // bug for fix
 		case "docs":
 			return "📝" // docs
 		case "refactor":

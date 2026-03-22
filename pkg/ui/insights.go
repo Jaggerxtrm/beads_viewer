@@ -41,7 +41,7 @@ type MetricInfo struct {
 
 var metricDescriptions = map[MetricPanel]MetricInfo{
 	PanelBottlenecks: {
-		Icon:        "🚧",
+		Icon:        "►",
 		Title:       "Bottlenecks",
 		ShortDesc:   "Betweenness Centrality",
 		WhatIs:      "Measures how often a bead lies on **shortest paths** between other beads in the dependency graph.",
@@ -1157,7 +1157,7 @@ func (m *InsightsModel) renderPriorityPanel(width, height int, t Theme) string {
 
 	// Scroll indicator
 	if len(picks) > visibleItems {
-		scrollInfo := fmt.Sprintf("◀ %d/%d ▶", selectedIdx+1, len(picks))
+		scrollInfo := fmt.Sprintf("< %d/%d >", selectedIdx+1, len(picks))
 		scrollStyle := t.Renderer.NewStyle().
 			Foreground(t.Subtext).
 			Align(lipgloss.Center).
@@ -1569,7 +1569,7 @@ func (m *InsightsModel) renderHeatmapDrillDown(width int, t Theme) string {
 		scoreLabel = scoreLabels[m.heatmapCol]
 	}
 	titleStyle := t.Renderer.NewStyle().Bold(true).Foreground(t.Primary)
-	sb.WriteString(titleStyle.Render(fmt.Sprintf("📋 Issues in %s × %s (%d items)",
+	sb.WriteString(titleStyle.Render(fmt.Sprintf("› Issues in %s × %s (%d items)",
 		depthLabel, scoreLabel, len(m.heatmapIssues))))
 	sb.WriteString("\n")
 
@@ -1634,7 +1634,7 @@ func (m *InsightsModel) renderDrillDownIssue(issueID string, isSelected bool, wi
 	icon := "•"
 	switch issue.IssueType {
 	case "bug":
-		icon = "🐛"
+		icon = "!"
 	case "feature":
 		icon = "✨"
 	case "task":

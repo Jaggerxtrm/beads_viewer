@@ -66,12 +66,12 @@ func GenerateTopReasons(score ImpactScore) []PriorityReason {
 	}{
 		{"pagerank", score.Breakdown.PageRank, score.Breakdown.PageRankNorm, "Central in dependency graph", "🎯"},
 		{"betweenness", score.Breakdown.Betweenness, score.Breakdown.BetweennessNorm, "Critical path bottleneck", "🔀"},
-		{"blockers", score.Breakdown.BlockerRatio, score.Breakdown.BlockerRatioNorm, "High blocker count", "🚧"},
+		{"blockers", score.Breakdown.BlockerRatio, score.Breakdown.BlockerRatioNorm, "High blocker count", "►"},
 		{"staleness", score.Breakdown.Staleness, score.Breakdown.StalenessNorm, "Needs attention (aging)", "⏰"},
-		{"priority", score.Breakdown.PriorityBoost, score.Breakdown.PriorityBoostNorm, "Explicit priority set", "⭐"},
+		{"priority", score.Breakdown.PriorityBoost, score.Breakdown.PriorityBoostNorm, "Explicit priority set", "★"},
 		{"time_to_impact", score.Breakdown.TimeToImpact, score.Breakdown.TimeToImpactNorm, "Fast impact potential", "⚡"},
 		{"urgency", score.Breakdown.Urgency, score.Breakdown.UrgencyNorm, "Urgent labels/timing", "🔥"},
-		{"risk", score.Breakdown.Risk, score.Breakdown.RiskNorm, "Risk/volatility factors", "⚠️"},
+		{"risk", score.Breakdown.Risk, score.Breakdown.RiskNorm, "Risk/volatility factors", "!"},
 	}
 
 	// Sort by weighted contribution (descending)

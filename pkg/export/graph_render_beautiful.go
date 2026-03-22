@@ -654,9 +654,9 @@ func generateUltimateHTML(title, dataHash, graphDataJSON string, nodeCount, edge
             </div>
             <div class="toolbar-group">
                 <button id="btn-heatmap" title="Toggle heatmap coloring - shows node importance by color intensity (H)">🔥</button>
-                <button id="btn-triage" title="Show/hide triage recommendations panel with prioritized work items (G)">📋</button>
-                <button id="btn-top" title="Show/hide top nodes panel with highest PageRank nodes (T)">⭐</button>
-                <button id="btn-recent" title="Show/hide recently viewed nodes (Y)">🕐</button>
+                <button id="btn-triage" title="Show/hide triage recommendations panel with prioritized work items (G)">›</button>
+                <button id="btn-top" title="Show/hide top nodes panel with highest PageRank nodes (T)">★</button>
+                <button id="btn-recent" title="Show/hide recently viewed nodes (Y)">⏳</button>
                 <button id="btn-path" title="Enter path finder mode - click two nodes to find shortest path (P)">🛤️</button>
                 <button id="btn-theme" title="Switch to light mode (L)">☀️</button>
                 <button id="btn-help" title="Show keyboard shortcuts and help (?)">❓</button>
@@ -668,7 +668,7 @@ func generateUltimateHTML(title, dataHash, graphDataJSON string, nodeCount, edge
     <main>
         <div id="detail-sidebar">
             <div class="panel-header">
-                <h3><span class="icon">✨</span> Bead Details</h3>
+                <h3><span class="icon">+</span> Bead Details</h3>
                 <button class="detach-btn" id="btn-detach" title="Detach panel (D)">
                     <span>⇱</span> Detach
                 </button>
@@ -868,10 +868,10 @@ func generateUltimateHTML(title, dataHash, graphDataJSON string, nodeCount, edge
         <div class="context-menu-item" id="ctx-details">📄 Show full details</div>
         <div class="context-menu-item" id="ctx-deps">📥 Show dependencies</div>
         <div class="context-menu-item" id="ctx-dependents">📤 Show dependents</div>
-        <div class="context-menu-item" id="ctx-connected">✨ Highlight connected</div>
+        <div class="context-menu-item" id="ctx-connected">+ Highlight connected</div>
         <div class="context-menu-divider"></div>
         <div class="context-menu-item" id="ctx-path">🛤️ Find path to...</div>
-        <div class="context-menu-item" id="ctx-copy">📋 Copy ID</div>
+        <div class="context-menu-item" id="ctx-copy">Copy< ID</div>
     </div>
     <div class="help-overlay" id="help-overlay">
         <div class="help-content">

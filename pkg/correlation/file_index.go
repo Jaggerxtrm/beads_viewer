@@ -726,7 +726,7 @@ func (fl *FileLookup) ImpactAnalysis(files []string) *ImpactResult {
 		}
 		prefix := "Found "
 		if inProgressCount > 0 {
-			prefix = "⚠️ Conflict risk: "
+			prefix = "! Conflict risk: "
 		}
 		result.Summary = prefix + strings.Join(parts, ", ") + " touching these files"
 	}

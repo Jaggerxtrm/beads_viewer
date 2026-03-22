@@ -195,18 +195,16 @@ func (t Theme) GetStatusColor(s string) lipgloss.AdaptiveColor {
 func (t Theme) GetTypeIcon(typ string) (string, lipgloss.AdaptiveColor) {
 	switch typ {
 	case "bug":
-		return "🐛", t.Bug
+		return IconBug, t.Bug
 	case "feature":
-		return "✨", t.Feature
-	case "task":
-		return "📋", t.Task
+		return IconFeature, t.Feature
 	case "epic":
-		// Use 🚀 instead of 🏔️ - the snow-capped mountain has a variation selector
-		// (U+FE0F) that causes inconsistent width calculations across terminals
-		return "🚀", t.Epic
+		return IconEpic, t.Epic
+	case "task":
+		return IconTask, t.Task
 	case "chore":
-		return "🧹", t.Chore
+		return IconChore, t.Chore
 	default:
-		return "•", t.Subtext
+		return IconDefault, t.Subtext
 	}
 }
