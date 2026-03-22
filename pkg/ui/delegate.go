@@ -137,11 +137,11 @@ func (d IssueDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 
 	// Triage indicator width (bv-151) - use lipgloss.Width for accurate emoji measurement
 	if i.IsQuickWin {
-		leftFixedWidth += lipgloss.Width("⭐") + 1 // emoji + space
+		leftFixedWidth += lipgloss.Width("★") + 1 // emoji + space
 	} else if i.IsBlocker && i.UnblocksCount > 0 {
-		leftFixedWidth += lipgloss.Width(fmt.Sprintf("🔓%d", i.UnblocksCount)) + 1 // emoji+count + space
+		leftFixedWidth += lipgloss.Width(fmt.Sprintf("→%d", i.UnblocksCount)) + 1 // emoji+count + space
 	} else if i.UnblocksCount > 0 {
-		leftFixedWidth += lipgloss.Width(fmt.Sprintf("↪%d", i.UnblocksCount)) + 1 // arrow+count + space
+		leftFixedWidth += lipgloss.Width(fmt.Sprintf("↳%d", i.UnblocksCount)) + 1 // arrow+count + space
 	}
 
 	// Status badge (polished)
@@ -228,11 +228,11 @@ func (d IssueDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 	// Triage indicators (bv-151): Quick win ⭐ and Unblocks count 🔓 - using pre-computed styles
 	triageIndicator := ""
 	if i.IsQuickWin {
-		triageIndicator = t.TriageStar.Render("⭐")
+		triageIndicator = t.TriageStar.Render("★")
 	} else if i.IsBlocker && i.UnblocksCount > 0 {
-		triageIndicator = t.TriageUnblocks.Render(fmt.Sprintf("🔓%d", i.UnblocksCount))
+		triageIndicator = t.TriageUnblocks.Render(fmt.Sprintf("→%d", i.UnblocksCount))
 	} else if i.UnblocksCount > 0 {
-		triageIndicator = t.TriageUnblocksAlt.Render(fmt.Sprintf("↪%d", i.UnblocksCount))
+		triageIndicator = t.TriageUnblocksAlt.Render(fmt.Sprintf("↳%d", i.UnblocksCount))
 	}
 	if triageIndicator != "" {
 		leftSide.WriteString(triageIndicator)

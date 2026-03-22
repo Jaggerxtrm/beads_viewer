@@ -382,10 +382,10 @@ func (b *BoardModel) getColumnHeaders() ([]string, []string) {
 			[]string{"🔥", "⚡", "🔹", "💤"}
 	case SwimByType:
 		return []string{"BUG", "FEATURE", "TASK", "EPIC"},
-			[]string{"🐛", "✨", "📋", "🎯"}
+			[]string{"!", "+", "○", "?"}
 	default: // SwimByStatus
 		return []string{"OPEN", "IN PROGRESS", "BLOCKED", "CLOSED"},
-			[]string{"📋", "🔄", "🚫", "✅"}
+			[]string{"○", "►", "✗", "✓"}
 	}
 }
 
@@ -1043,7 +1043,7 @@ func (b BoardModel) View(width, height int) string {
 			}
 			// Show blocked count in In Progress column (colIdx == ColInProgress when in status mode)
 			if b.swimLaneMode == SwimByStatus && colIdx == ColInProgress && stats.BlockedCount > 0 {
-				indicators = append(indicators, fmt.Sprintf("⚠️%d", stats.BlockedCount))
+				indicators = append(indicators, fmt.Sprintf("!%d", stats.BlockedCount))
 			}
 			// Show oldest age with color indicator
 			if stats.OldestAge > 0 && issueCount > 0 {

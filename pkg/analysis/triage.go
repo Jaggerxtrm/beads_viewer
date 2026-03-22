@@ -1311,7 +1311,7 @@ func GenerateTriageReasons(ctx TriageReasonContext) TriageReasons {
 			primary = reason
 		}
 	} else if len(ctx.UnblocksIDs) > 0 {
-		reason := fmt.Sprintf("🔓 Unblocks %d item(s): %s",
+		reason := fmt.Sprintf("→ Unblocks %d item(s): %s",
 			len(ctx.UnblocksIDs), formatUnblockList(ctx.UnblocksIDs))
 		reasons = append(reasons, reason)
 	}
@@ -1321,7 +1321,7 @@ func GenerateTriageReasons(ctx TriageReasonContext) TriageReasons {
 		for _, label := range ctx.Issue.Labels {
 			health, exists := ctx.LabelHealth[label]
 			if exists && health < 60 {
-				reason := fmt.Sprintf("⚠️ Label '%s' needs attention (health: %d/100)", label, health)
+				reason := fmt.Sprintf("! Label '%s' needs attention (health: %d/100)", label, health)
 				reasons = append(reasons, reason)
 			}
 		}
@@ -1345,7 +1345,7 @@ func GenerateTriageReasons(ctx TriageReasonContext) TriageReasons {
 
 	// 4. Staleness alert
 	if ctx.DaysSinceUpdate > 14 {
-		reason := fmt.Sprintf("🕐 No activity in %d days - may need review", ctx.DaysSinceUpdate)
+		reason := fmt.Sprintf("⏳ No activity in %d days - may need review", ctx.DaysSinceUpdate)
 		reasons = append(reasons, reason)
 		if ctx.Issue != nil && ctx.Issue.Status == model.StatusInProgress {
 			actionHint = "Check if this is stuck and needs help"
@@ -1382,10 +1382,10 @@ func GenerateTriageReasons(ctx TriageReasonContext) TriageReasons {
 			reasons = append(reasons, reason)
 			actionHint = fmt.Sprintf("Contact %s if you want to help", ctx.ClaimedByAgent)
 		} else {
-			reasons = append(reasons, "🚧 In progress - already being worked")
+			reasons = append(reasons, "► In progress - already being worked")
 		}
 	} else if ctx.ClaimedByAgent == "" {
-		reasons = append(reasons, "✅ Currently unclaimed - available for work")
+		reasons = append(reasons, "✓ Currently unclaimed - available for work")
 	} else {
 		reason := fmt.Sprintf("👤 Claimed by %s", ctx.ClaimedByAgent)
 		reasons = append(reasons, reason)

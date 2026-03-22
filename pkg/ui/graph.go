@@ -877,7 +877,7 @@ func (g *GraphModel) renderMetricsPanel(id string, width int, t Theme) string {
 func getStatusIcon(status model.Status) string {
 	switch {
 	case isClosedLikeStatus(status):
-		return "✅"
+		return "✓"
 	case status == model.StatusOpen:
 		return "🔵"
 	case status == model.StatusInProgress:
@@ -931,7 +931,7 @@ func getPriorityIcon(priority int) string {
 	case 3:
 		return "📌"
 	case 4:
-		return "📋"
+		return "○"
 	default:
 		return "  "
 	}
@@ -940,9 +940,9 @@ func getPriorityIcon(priority int) string {
 func getTypeIcon(itype model.IssueType) string {
 	switch itype {
 	case model.TypeBug:
-		return "🐛"
+		return "!"
 	case model.TypeFeature:
-		return "✨"
+		return "+"
 	case model.TypeTask:
 		return "📝"
 	case model.TypeEpic:

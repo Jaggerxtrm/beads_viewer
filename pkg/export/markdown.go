@@ -280,15 +280,15 @@ func isClosedLikeStatus(status model.Status) bool {
 func getTypeEmoji(issueType string) string {
 	switch issueType {
 	case "bug":
-		return "🐛"
+		return "!"
 	case "feature":
-		return "✨"
+		return "+"
 	case "task":
-		return "📋"
+		return "○"
 	case "epic":
-		return "🚀" // Use rocket instead of mountain - VS-16 variation selector causes width issues
+		return "◆" // Use rocket instead of mountain - VS-16 variation selector causes width issues
 	case "chore":
-		return "🧹"
+		return "~"
 	default:
 		return "•"
 	}
@@ -412,7 +412,7 @@ func generateIssueCommands(issue model.Issue) string {
 
 	escapedID := shellEscape(issue.ID)
 
-	sb.WriteString("<details>\n<summary>📋 Commands</summary>\n\n")
+	sb.WriteString("<details>\n<summary>› Commands</summary>\n\n")
 	sb.WriteString("```bash\n")
 
 	// Status transitions based on current state
@@ -531,7 +531,7 @@ func GeneratePriorityBrief(triage interface{}, config PriorityBriefConfig) strin
 	sb.WriteString("|-------|--------|--------|\n")
 	sb.WriteString("| *Run `bv --robot-triage` for data* | - | - |\n\n")
 
-	sb.WriteString("## 🚧 Blockers to Clear\n\n")
+	sb.WriteString("## ► Blockers to Clear\n\n")
 	sb.WriteString("| Issue | Unblocks | Actionable |\n")
 	sb.WriteString("|-------|----------|------------|\n")
 	sb.WriteString("| *Run `bv --robot-triage` for data* | - | - |\n\n")
@@ -694,7 +694,7 @@ func GeneratePriorityBriefFromTriageJSON(triageJSON []byte, config PriorityBrief
 	}
 
 	// Blockers
-	sb.WriteString("## 🚧 Blockers to Clear\n\n")
+	sb.WriteString("## ► Blockers to Clear\n\n")
 	if len(triage.BlockersToClear) == 0 {
 		sb.WriteString("*No critical blockers.*\n\n")
 	} else {
@@ -710,7 +710,7 @@ func GeneratePriorityBriefFromTriageJSON(triageJSON []byte, config PriorityBrief
 			b := triage.BlockersToClear[i]
 			ready := "❌"
 			if b.Actionable {
-				ready = "✅"
+				ready = "✓"
 			}
 			sb.WriteString(fmt.Sprintf("| **%s** %s | %d | %s |\n",
 				b.ID,
@@ -780,15 +780,15 @@ func truncateString(s string, maxLen int) string {
 func getTypeIcon(issueType string) string {
 	switch issueType {
 	case "bug":
-		return "🐛"
+		return "!"
 	case "feature":
-		return "✨"
+		return "+"
 	case "task":
-		return "📋"
+		return "○"
 	case "epic":
-		return "🚀"
+		return "◆"
 	case "chore":
-		return "🧹"
+		return "~"
 	default:
 		return "•"
 	}

@@ -223,15 +223,23 @@ func getDepTypeIcon(depType string) string {
 func GetStatusIcon(s string) string {
 	switch s {
 	case "open":
-		return "🟢"
+		return IconOpen
 	case "in_progress":
-		return "🔵"
+		return IconInProgress
 	case "blocked":
-		return "🔴"
+		return IconBlocked
 	case "closed":
-		return "⚫"
+		return IconClosed
+	case "deferred":
+		return IconDeferred
+	case "pinned":
+		return IconPinned
+	case "review":
+		return IconReview
+	case "tombstone":
+		return IconTombstone
 	default:
-		return "⚪"
+		return IconOpen
 	}
 }
 
@@ -239,17 +247,17 @@ func GetStatusIcon(s string) string {
 func GetPriorityIcon(priority int) string {
 	switch priority {
 	case 0:
-		return "🔥" // Critical
+		return IconCritical // Critical
 	case 1:
-		return "⚡" // High
+		return IconHigh // High
 	case 2:
-		return "🔹" // Medium
+		return IconMedium // Medium
 	case 3:
-		return "☕" // Low
+		return IconLow // Low
 	case 4:
-		return "💤" // Backlog
+		return IconBacklog // Backlog
 	default:
-		return "  "
+		return " "
 	}
 }
 
