@@ -1,0 +1,5 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server"
+}

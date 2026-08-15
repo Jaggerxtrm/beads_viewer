@@ -1,0 +1,3 @@
+dolt:
+  shared-server: true
+export.git-add: false

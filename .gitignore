@@ -67,3 +67,14 @@ target-*/
 .beads/dolt/
 .beads/dolt-server.*
 .beads/dolt-monitor.*
+
+# Beads / Dolt files (added by bd init)
+.beads-credential-key
+.beads/proxieddb/
+
+# xtrm runtime state (per-machine, do not track)
+.xtrm/skills/state.json
+.xtrm/worktrees/
+.xtrm/cache/
+.xtrm/statusline-claim
+.pi/skills/
